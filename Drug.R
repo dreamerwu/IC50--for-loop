@@ -76,6 +76,21 @@ write.csv(output,"D:/demo/result.csv")       #output
 
 #Screen cell lines with P value of three predictor less than 0.05
 
+significant_cell_line=matrix(data=NA,5:383)
+m=ncol(output)
+t=1
+for (i in 1:m) {
+  if (output[3:3,i:i]<0.05) {
+    if (output[4:4,i:i]<0.05) {
+      if (output[5:5,i:i]<0.05) {
+        significant_cell_line[1:5,t:t]=output[1:5,i:i]
+        t=t+1
+      }
+    }
+  }
+}
+
+write.csv(significant_cell_line,"D:/demo/significant_cell_line")
 
 
 
