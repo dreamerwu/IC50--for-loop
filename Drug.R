@@ -53,44 +53,69 @@ pp+scale_color_manual(values=c("blue","purple","gray","red","seagreen2","lightco
 #3. calculate IC50 at same time
 library("drc")
 data=read.delim("D:/demo/demo.txt",head=T,sep="\t")
+
+#Test the best model (fctlist:LL.2,LL.3,LL.3u,LL.4,LL.5,W1.2,W1.3,W1.4,W2.2,W2.3,W2.4,BC.4,BC.5,LL2.2,LL2.3,LL2.3u,LL2.4,LL2.5,AR.2,AR.3,MM.2,MM.3)
+Concentration=data[,1:1]    #defign the first column as Concentration
+Response=data[,7:7]         #defign the Response group
+df=data.frame(Concentration=Concentration,Response=Response)  #merge Concentration and Response into one group
+fit=drm(Response~Concentration,data=df,fct=LL.3(),type="continuous",separate=TRUE)            #Built model
+result=ED(fit,50)                                             #calculate IC50                                              #Extract IC50
+plot(fit)
+summary(fit)
+getMeanFunctions
+
+#Calculate IC50 at the same time using the best model
 Concentration=data[,1:1]    #defign the first column as Concentration
 n=ncol(data)                #calculate column number
-output=matrix(data=NA,5,383)  #defign a matrix
-
-
+output=matrix(data=NA,6,383)  #defign a matrix
 for(i in 2:n) {             #for loop
 Response=data[,i:i]         #defign the Response group
 df=data.frame(Concentration=Concentration,Response=Response)  #merge Concentration and Response into one group
-fit=drm(Response~Concentration,data=df,fct=LL.4(),type="continuous",separate=TRUE)            #Built model
+fit=drm(Response~Concentration,data=df,fct=LL.3(),type="continuous",separate=TRUE)            #Built model
 result=ED(fit,50)                                             #calculate IC50                                              #Extract IC50
-output[1,(i-1):(i-1)]=result[1,1]    #Put the IC50 value into matrix
+output[2,(i-1):(i-1)]=result[1,1]    #Put the IC50 value into matrix
 
 summary=summary(fit)     
 coefficient=summary$coefficients
 pvalue=coefficient[1:4,4:4]   #extract Pvalue
-output[2:5,(i-1):(i-1)]=pvalue  #put the p value into matrix
+output[3:6,(i-1):(i-1)]=pvalue  #put the p value into matrix
 
 }
+colname=1:383
+output[1:1,]=colname
 write.csv(output,"D:/demo/result.csv")       #output    
 
 
-#Screen cell lines with P value of three predictor less than 0.05
 
-significant_cell_line=matrix(data=NA,5:383)
+
+#Screen cell lines with P value of three predictor less than 0.05 & evaluate the model
 m=ncol(output)
+new_matrix=matrix(data=NA,6,383)
 t=1
 for (i in 1:m) {
-  if (output[3:3,i:i]<0.05) {
-    if (output[4:4,i:i]<0.05) {
-      if (output[5:5,i:i]<0.05) {
-        significant_cell_line[1:5,t:t]=output[1:5,i:i]
-        t=t+1
-      }
-    }
-  }
+  p1=output[3:3,i:i]
+  p2=output[4:4,i:i]
+  p3=output[5:5,i:i]
+  p4=output[6:6,i:i]
+  
+        if (p1 < 0.05) {
+          if (p2 <0.05) {
+             if (p3 <0.05) {
+               if (p4 <0.05) {
+              new_matrix[1:6,t:t]=output[1:6,i:i]
+              t=t+1
+              }
+            }
+          }
+        }
 }
 
-write.csv(significant_cell_line,"D:/demo/significant_cell_line")
+write.csv(new_matrix,"D:/demo/good_cell_lines.csv")
+
+
+
+
+
 
 
 
