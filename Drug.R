@@ -52,39 +52,74 @@ pp+scale_color_manual(values=c("blue","purple","gray","red","seagreen2","lightco
 
 #3. calculate IC50 at same time
 library("drc")
-data=read.delim("D:/demo/demo.txt",head=T,sep="\t")
+data=read.delim("D:/demo/xu_lab/drug/IC50_drc.txt",head=T,sep="\t")
 
 #Test the best model (fctlist:LL.2,LL.3,LL.3u,LL.4,LL.5,W1.2,W1.3,W1.4,W2.2,W2.3,W2.4,BC.4,BC.5,LL2.2,LL2.3,LL2.3u,LL2.4,LL2.5,AR.2,AR.3,MM.2,MM.3)
 Concentration=data[,1:1]    #defign the first column as Concentration
-Response=data[,7:7]         #defign the Response group
+Response=data[,83:83]         #defign the Response group
 df=data.frame(Concentration=Concentration,Response=Response)  #merge Concentration and Response into one group
 fit=drm(Response~Concentration,data=df,fct=LL.3(),type="continuous",separate=TRUE)            #Built model
 result=ED(fit,50)                                             #calculate IC50                                              #Extract IC50
 plot(fit)
 summary(fit)
 getMeanFunctions
+#conclusion: LL.3 is the best model, 297 cell lins are successfully calculated IC50, but 85 cell lines failed
+#LL.3 is Log-logistic(ED50 as parameter) with lower limit at 0 (3 parms)
+
 
 #Calculate IC50 at the same time using the best model
 Concentration=data[,1:1]    #defign the first column as Concentration
 n=ncol(data)                #calculate column number
-output=matrix(data=NA,6,383)  #defign a matrix
+output=matrix(data=NA,5,383)  #defign a matrix
 for(i in 2:n) {             #for loop
 Response=data[,i:i]         #defign the Response group
 df=data.frame(Concentration=Concentration,Response=Response)  #merge Concentration and Response into one group
 fit=drm(Response~Concentration,data=df,fct=LL.3(),type="continuous",separate=TRUE)            #Built model
 result=ED(fit,50)                                             #calculate IC50                                              #Extract IC50
-output[2,(i-1):(i-1)]=result[1,1]    #Put the IC50 value into matrix
+output[2:2,(i-1):(i-1)]=result[1:1,1:1]    #Put the IC50 value into matrix
 
 summary=summary(fit)     
 coefficient=summary$coefficients
-pvalue=coefficient[1:4,4:4]   #extract Pvalue
-output[3:6,(i-1):(i-1)]=pvalue  #put the p value into matrix
+pvalue=coefficient[1:3,4:4]   #extract Pvalue
+output[3:5,(i-1):(i-1)]=pvalue  #put the p value into matrix
 
 }
 colname=1:383
 output[1:1,]=colname
-write.csv(output,"D:/demo/result.csv")       #output    
+toutput=t(output)
+write.csv(toutput,"D:/demo/xu_lab/drug/output/result_LL3.csv")       #output   
 
+
+#to plot IC50 curve with multiple cell lines (success vs failed)
+#success cell lines
+success=read.delim("D:/demo/xu_lab/drug/success_IC50_drc.txt",head=T,sep="\t")
+Concentration=success[,1:1]
+Response=success[,2:2]       
+df=data.frame(Concentration=Concentration,Response=Response)
+fit=drm(Response~Concentration,data=df,fct=LL.3(),type="continuous",separate=TRUE) 
+plot(fit,ylim=c(0,1.5),xlim=c(0,30),col="red")
+n=ncol(success)
+for(i in 3:n) {             
+  Response=success[,i:i]       
+  df=data.frame(Concentration=Concentration,Response=Response)
+  fit=drm(Response~Concentration,data=df,fct=LL.3(),type="continuous",separate=TRUE) 
+  plot(fit,add=TRUE,ylim=c(0,1.5),xlim=c(0,30),col="red")
+}
+#failed cell lines
+fail=read.delim("D:/demo/xu_lab/drug/fail_IC50_drc.txt",head=T,sep="\t")
+Concentration=fail[,1:1]
+Response=fail[,2:2]       
+df=data.frame(Concentration=Concentration,Response=Response)
+fit=drm(Response~Concentration,data=df,fct=LL.3(),type="continuous",separate=TRUE) 
+plot(fit,ylim=c(0,1.5),xlim=c(0,30),col="blue")
+n=ncol(fail)
+for(i in 3:n) {             
+  Response=fail[,i:i]       
+  df=data.frame(Concentration=Concentration,Response=Response)
+  fit=drm(Response~Concentration,data=df,fct=LL.3(),type="continuous",separate=TRUE) 
+  plot(fit,add=TRUE,ylim=c(0,1.5),xlim=c(0,30),col="blue")
+  
+  }
 
 
 
