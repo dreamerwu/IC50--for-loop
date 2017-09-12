@@ -150,11 +150,6 @@ write.csv(new_matrix,"D:/demo/good_cell_lines.csv")
 
 
 
-
-
-
-
-
 ################################################################
 
 plot(fit)
@@ -177,57 +172,66 @@ print(fit)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 cor_matrix=cor(data)
 output=cor_matrix[1:1,]
 write.csv(output,"D:/demo/demo.csv")
 
 
 
-
-
+#IC50 distribution
 data=read.delim("D:/demo/xu_lab/drug/IC50.txt",head=T,sep="\t")
-ncol(data)
-data2=data[,2:257]
-pheatmap(data2,cluster_cols=FALSE,cluster_rows=FALSE,cellwidth=5,cellheight=10)
-
-
-
-
 library("ggplot2")
 library("ggthemes")
 p=ggplot(data,aes(x=Order,y=IC50,color=Organ))
-p+geom_point(size=5)+theme_bw()
-
+p+geom_point(size=2)+theme_bw()+ylim(0,40)
 
 IC50=data$IC50
-hist(IC50,breaks=seq(0,800,5))
+hist(IC50,breaks=seq(0,40,2))
+# cancer type as categary
+p=ggplot(data,aes(x=Group,y=IC50,color=Organ))
+p+geom_boxplot(aes(colour=Organ),outlier.color="white",outlier.size=0,width=0.7)+theme_bw()+geom_jitter(size=2,width=0.15)
+
+###################################################################################################################
+#Calculate relationship between IC50 and Achilles
+library("ggplot2")
+library("ggthemes")
+data=read.delim("D:/demo/xu_lab/drug/IC50_ATARiS_shRNA.txt",head=T,sep="\t")
+p=ggplot(data,aes(x=IC50,y=YAP1,color=Cancer_type))
+pp=p+geom_point(size=5)+theme_bw()
+pp+scale_color_manual(values=c("black","purple","green","blue","red","yellow","brown","gray","lightblue","lightgreen","orange","violet"))
+
+IC50=data$IC50
+TEAD2=data$TEAD2
+TEAD3=data$TEAD3
+TEAD1=data$TEAD1
+YAP1=data$YAP1
+
+cor.test(IC50,TEAD1)
+cor.test(IC50,TEAD2)
+cor.test(IC50,TEAD3)
+cor.test(IC50,YAP1)
+
+library("Hmisc")
+library("pheatmap")
+head(data)
+ncol(data)
+data2=data[,4:7]
+pheatmap(data2)
+
+
+fit=lm(IC50 ~ YAP1,data=data)
+summary(fit)
+
+
+
+
+cor1=rcorr(as.matrix(data2),type="pearson")
+
+
+
+data=read.delim("D:/demo/xu_lab/drug/IC50_ATARiS_shRNA_ovarian.txt",head=T,sep="\t")
+
+
+
 
 
